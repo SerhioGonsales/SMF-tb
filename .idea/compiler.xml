@@ -11,11 +11,17 @@
         <module name="untilted" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="dispatcher2" target="11" />
+      <module name="untitled" target="11" />
+    </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
       <module name="SMF_tb" options="-parameters" />
       <module name="dispatcher" options="-parameters" />
+      <module name="dispatcher2" options="-parameters" />
+      <module name="untitled" options="-parameters" />
     </option>
   </component>
 </project>
