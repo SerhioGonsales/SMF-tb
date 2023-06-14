@@ -8,6 +8,8 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
+import javax.annotation.PostConstruct;
+
 @Component
 @Log4j
 public class TelegramBot extends TelegramLongPollingBot {
@@ -15,6 +17,16 @@ public class TelegramBot extends TelegramLongPollingBot {
     private String botName;
     @Value("${bot.token}")
     private String botToken;
+    private final UpdateProcessor updateProcessor;
+
+    public TelegramBot(UpdateProcessor updateProcessor){
+        this.updateProcessor = updateProcessor;
+    }
+
+    @PostConstruct
+    public void init(){
+        updateProcessor.registerBot(this);
+    }
 
     @Override
     public String getBotUsername() {
@@ -28,18 +40,21 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     @Override
     public void onUpdateReceived(Update update) {
-        var message = update.getMessage();
-        log.debug(message.getText());
-
-        var response = new SendMessage();
-        response.setChatId(message.getChatId());
-        response.setText("Hello from bot");
-        sendAnswer(response);
+        updateProcessor.processUpdate(update);
+//        var message = update.getMessage();
+//        log.debug(message.getText());
+//
+//        var response = new SendMessage();
+//        response.setChatId(message.getChatId());
+//        response.setText("Hello from bot");
+//        sendAnswerMessage(response);
     }
 
-    private void sendAnswer(SendMessage sendMessage) {
+    public void sendAnswerMessage(SendMessage sendMessage) {
         try{
-            execute(sendMessage);
+            if(sendMessage != null){
+                execute(sendMessage);
+            }
         } catch (TelegramApiException e) {
             log.error(e);
         }
