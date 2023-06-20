@@ -76,6 +76,7 @@ public class UpdateProcessor {
                 "Файл получен, идет генерация ссылки для скачивания...");
         setView(sendMessage);
     }
+
     public void setView(SendMessage sendMessage) {
         telegramBot.sendAnswerMessage(sendMessage);
     }
