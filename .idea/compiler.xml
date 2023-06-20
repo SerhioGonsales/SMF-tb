@@ -7,6 +7,7 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
+        <module name="node" />
         <module name="dispatcher" />
         <module name="common-rabbitmq" />
         <module name="untilted" />
@@ -18,6 +19,7 @@
       <module name="SMF_tb" options="-parameters" />
       <module name="common-rabbitmq" options="-parameters" />
       <module name="dispatcher" options="-parameters" />
+      <module name="node" options="-parameters" />
     </option>
   </component>
 </project>
