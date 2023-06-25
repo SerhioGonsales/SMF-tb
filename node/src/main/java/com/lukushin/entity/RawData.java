@@ -23,5 +23,5 @@ public class RawData {
     private Long id;
     @Type(type = "jsonb")
     @Column(columnDefinition = "jsonb")
-    private Update update;
+    private Update event;
 }

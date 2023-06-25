@@ -1,6 +1,6 @@
 package com.lukushin.entity;
 
-import com.lukushin.entity.enums.UserState;
+import com.lukushin.enums.UserState;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 

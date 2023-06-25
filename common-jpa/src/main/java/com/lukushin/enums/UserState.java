@@ -1,4 +1,4 @@
-package com.lukushin.entity.enums;
+package com.lukushin.enums;
 
 public enum UserState {
     BASIC_STATE,

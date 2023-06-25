@@ -1,4 +1,4 @@
-package com.lukushin.entity.dao;
+package com.lukushin.dao;
 
 import com.lukushin.entity.AppUser;
 import org.springframework.data.jpa.repository.JpaRepository;

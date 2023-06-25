@@ -48,6 +48,11 @@ public class UpdateProcessor {
         }
     }
 
+    private void processTextMessage(Update update) {
+        log.debug(update.getMessage().getText());
+        updateProducer.produce(TEXT_MESSAGE_UPDATE, update);
+    }
+
     private void processPhotoMessage(Update update) {
         log.debug(update.getMessage().getText());
         updateProducer.produce(PHOTO_MESSAGE_UPDATE, update);
@@ -58,11 +63,6 @@ public class UpdateProcessor {
         log.debug(update.getMessage().getText());
         updateProducer.produce(DOC_MESSAGE_UPDATE, update);
         setFileIsReceivedView(update);
-    }
-
-    private void processTextMessage(Update update) {
-        log.debug(update.getMessage().getText());
-        updateProducer.produce(TEXT_MESSAGE_UPDATE, update);
     }
 
     private void setUnsupportedMessageTypeView(Update update) {
