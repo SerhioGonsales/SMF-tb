@@ -1,9 +1,13 @@
 package com.lukushin.service.impl;
 
 import com.lukushin.dao.RawDataDAO;
+import com.lukushin.entity.AppDocument;
 import com.lukushin.entity.AppUser;
 import com.lukushin.entity.RawData;
 import com.lukushin.dao.AppUserDAO;
+import com.lukushin.enums.ServiceCommands;
+import com.lukushin.exceptions.UploadFileException;
+import com.lukushin.service.FileService;
 import com.lukushin.service.MainService;
 import com.lukushin.service.ProducerService;
 import lombok.extern.log4j.Log4j;
@@ -20,13 +24,16 @@ public class MainServiceImpl implements MainService {
     private final RawDataDAO rawDataDAO;
     private final ProducerService producerService;
     private final AppUserDAO appUserDAO;
+    private final FileService fileService;
 
     public MainServiceImpl(RawDataDAO rawDataDAO,
                            ProducerService producerService,
-                           AppUserDAO appUserDAO) {
+                           AppUserDAO appUserDAO,
+                           FileService fileService) {
         this.rawDataDAO = rawDataDAO;
         this.producerService = producerService;
         this.appUserDAO = appUserDAO;
+        this.fileService = fileService;
     }
 
     @Override
@@ -37,10 +44,11 @@ public class MainServiceImpl implements MainService {
         var userState = appUser.getState();
         var out ="";
 
-        if(CANCEL.equals(cmd)) {
+        var serviceCommand = ServiceCommands.fromValue(cmd);
+        if(CANCEL.equals(serviceCommand)) {
             out = processCancelCmd(appUser);
         } else if(BASIC_STATE.equals(userState)){
-            out = processServiceCommand(cmd);
+            out = processServiceCommand(appUser, cmd);
         } else if(WAIT_FOR_EMAIL_STATE.equals(userState)){
             // TODO добавить обработку email
         } else {
@@ -59,9 +67,17 @@ public class MainServiceImpl implements MainService {
         if(isNotAllowToSendContent(appUser, chatId)){
             return;
         }
-        // TODO реализовать сохранение контента
-        sendAnswer(chatId, "Документ успешно загружен.\n" +
-                "Ваша ссылка для скачивания: http://test.ru/get-doc/777.doc");
+
+        try {
+            AppDocument doc = fileService.processDoc(update.getMessage());
+            //TODO добавить генерацию ссылки
+            sendAnswer(chatId, "Документ успешно загружен.\n" +
+                    "Ваша ссылка для скачивания: http://test.ru/get-doc/777.doc");
+        } catch (UploadFileException e){
+            log.error(e);
+            String answer = "К сожалению, загрузка документа не удалась, попробуйте позже...";
+            sendAnswer(chatId, answer);
+        }
     }
 
     @Override
@@ -77,15 +93,16 @@ public class MainServiceImpl implements MainService {
                 "Ваша ссылка для скачивания: http://test.ru/get-photo/777.jpg");
     }
 
-    private String processServiceCommand(String cmd) {
-        if(REGISTRATION.equals(cmd)){
+    private String processServiceCommand(AppUser appUser, String cmd) {
+        var serviceCommand = ServiceCommands.fromValue(cmd);
+        if(REGISTRATION.equals(serviceCommand)){
             // TODO добавит генерацию письма
             return "Функция временно недоступна.";
 //            return "На вашу почту было выслано письмо для регистрации.\n" +
 //                    "Пройдите по ссылке в этом письме.";
-        } else if(HELP.equals(cmd)){
+        } else if(HELP.equals(serviceCommand)){
             return help();
-        } else if(START.equals(cmd)){
+        } else if(START.equals(serviceCommand)){
             return "Приветствую!\n" +
                     "Список доступных команд ниже:\n" +
                     "/cancel - отмена предыдущей команды\n" +
