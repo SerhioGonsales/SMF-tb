@@ -2,11 +2,11 @@ package com.lukushin.service.impl;
 
 import com.lukushin.dao.AppDocumentDAO;
 import com.lukushin.dao.AppPhotoDAO;
-import com.lukushin.dao.BinaryContentDAO;
 import com.lukushin.entity.AppDocument;
 import com.lukushin.entity.AppPhoto;
 import com.lukushin.entity.BinaryContent;
 import com.lukushin.service.FileService;
+import com.lukushin.utils.CryptoTool;
 import lombok.extern.log4j.Log4j;
 import org.apache.commons.io.FileUtils;
 import org.springframework.core.io.FileSystemResource;
@@ -20,23 +20,26 @@ import java.io.IOException;
 public class FileServiceImpl implements FileService {
     private final AppDocumentDAO appDocumentDAO;
     private final AppPhotoDAO appPhotoDAO;
+    private final CryptoTool cryptoTool;
 
     public FileServiceImpl(AppDocumentDAO appDocumentDAO,
-                           AppPhotoDAO appPhotoDAO) {
+                           AppPhotoDAO appPhotoDAO,
+                           CryptoTool cryptoTool) {
         this.appDocumentDAO = appDocumentDAO;
         this.appPhotoDAO = appPhotoDAO;
+        this.cryptoTool = cryptoTool;
     }
 
     @Override
-    public AppDocument getDocument(String id) {
-        Long docId = Long.parseLong(id);
+    public AppDocument getDocument(String hashId) {
+        var docId = cryptoTool.idOf(hashId);
         return appDocumentDAO.findById(docId).orElse(null);
 
     }
 
     @Override
-    public AppPhoto getPhoto(String id) {
-        Long photoId = Long.parseLong(id);
+    public AppPhoto getPhoto(String hashId) {
+        var photoId = cryptoTool.idOf(hashId);
         return appPhotoDAO.findById(photoId).orElse(null);
     }
 
@@ -46,7 +49,7 @@ public class FileServiceImpl implements FileService {
             //TODO добавить генерацию имен временных файлов
             File temp = File.createTempFile("tempFile", "bin");
             temp.deleteOnExit();
-            FileUtils.writeByteArrayToFile(temp, binaryContent.getFileAsArrayOfByte());
+            FileUtils.writeByteArrayToFile(temp, binaryContent.getFileAsArrayOfBytes());
             return new FileSystemResource(temp);
         } catch (IOException e) {
             System.out.println("FileSystemResource");

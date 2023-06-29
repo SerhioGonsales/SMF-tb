@@ -2,9 +2,11 @@ package com.lukushin.service.impl;
 
 import com.lukushin.dao.RawDataDAO;
 import com.lukushin.entity.AppDocument;
+import com.lukushin.entity.AppPhoto;
 import com.lukushin.entity.AppUser;
 import com.lukushin.entity.RawData;
 import com.lukushin.dao.AppUserDAO;
+import com.lukushin.enums.LinkType;
 import com.lukushin.enums.ServiceCommands;
 import com.lukushin.exceptions.UploadFileException;
 import com.lukushin.service.FileService;
@@ -70,9 +72,9 @@ public class MainServiceImpl implements MainService {
 
         try {
             AppDocument doc = fileService.processDoc(update.getMessage());
-            //TODO добавить генерацию ссылки
+            String link = fileService.generateLink(doc.getId(), LinkType.GET_DOC);
             sendAnswer(chatId, "Документ успешно загружен.\n" +
-                    "Ваша ссылка для скачивания: http://test.ru/get-doc/777.doc");
+                    "Ваша ссылка для скачивания: " + link);
         } catch (UploadFileException e){
             log.error(e);
             String answer = "К сожалению, загрузка документа не удалась, попробуйте позже...";
@@ -88,9 +90,17 @@ public class MainServiceImpl implements MainService {
         if(isNotAllowToSendContent(appUser, chatId)){
             return;
         }
-        // TODO реализовать сохранение контента
-        sendAnswer(chatId, "Фото успешно загружено.\n" +
-                "Ваша ссылка для скачивания: http://test.ru/get-photo/777.jpg");
+
+        try{
+            AppPhoto photo = fileService.processPhoto(update.getMessage());
+            String link = fileService.generateLink(photo.getId(), LinkType.GET_PHOTO);
+            sendAnswer(chatId, "Фото успешно загружено.\n" +
+                    "Ваша ссылка для скачивания: " + link);
+        } catch (UploadFileException e){
+            log.error(e);
+            String answer = "К сожалению, загрузка фотографии не удалась, попробуйте позже...";
+            sendAnswer(chatId, answer);
+    }
     }
 
     private String processServiceCommand(AppUser appUser, String cmd) {

@@ -6,8 +6,10 @@ import com.lukushin.dao.BinaryContentDAO;
 import com.lukushin.entity.AppDocument;
 import com.lukushin.entity.AppPhoto;
 import com.lukushin.entity.BinaryContent;
+import com.lukushin.enums.LinkType;
 import com.lukushin.exceptions.UploadFileException;
 import com.lukushin.service.FileService;
+import com.lukushin.utils.CryptoTool;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
@@ -31,17 +33,22 @@ public class FileServiceImpl implements FileService {
     private String fileInfoUri;
     @Value("${service.file_storage.uri}")
     private String fileStorageUri;
+    @Value("${link.address}")
+    private String linkAddress;
 
     private final BinaryContentDAO binaryContentDAO;
     private final AppDocumentDAO appDocumentDAO;
     private final AppPhotoDAO appPhotoDAO;
+    private final CryptoTool cryptoTool;
 
     public FileServiceImpl(BinaryContentDAO binaryContentDAO,
                            AppDocumentDAO appDocumentDAO,
-                           AppPhotoDAO appPhotoDAO) {
+                           AppPhotoDAO appPhotoDAO,
+                           CryptoTool cryptoTool) {
         this.binaryContentDAO = binaryContentDAO;
         this.appDocumentDAO = appDocumentDAO;
         this.appPhotoDAO = appPhotoDAO;
+        this.cryptoTool = cryptoTool;
     }
 
     @Override
@@ -79,7 +86,7 @@ public class FileServiceImpl implements FileService {
                 .getString("file_path"));
         byte[] fileInByte = downloadFile(filePath);
         BinaryContent transientBinaryContent = BinaryContent.builder()
-                .fileAsArrayOfByte(fileInByte)
+                .fileAsArrayOfBytes(fileInByte)
                 .build();
         return binaryContentDAO.save(transientBinaryContent);
     }
@@ -134,5 +141,12 @@ public class FileServiceImpl implements FileService {
         } catch (IOException e) {
             throw new UploadFileException(uri.toExternalForm(), e);
         }
+    }
+
+    @Override
+    public String generateLink(Long id, LinkType linkType) {
+        var hashId = cryptoTool.hashOf(id);
+        return "http://" + linkAddress + linkType + "?id=" + hashId;
+        // http://127.0.0.1:8086/file/get-doc?id=hash
     }
 }
