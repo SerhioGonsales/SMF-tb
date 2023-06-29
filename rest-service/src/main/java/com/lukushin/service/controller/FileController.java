@@ -1,6 +1,7 @@
 package com.lukushin.service.controller;
 
 import com.lukushin.service.FileService;
+import com.lukushin.utils.CryptoTool;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,8 +16,8 @@ public class FileController {
     }
 
     @GetMapping("/get-doc")
-    public ResponseEntity<?> getDocument(@RequestParam ("id") String id){
-        var appDocument = fileService.getDocument(id);
+    public ResponseEntity<?> getDocument(@RequestParam ("id") String hashId){
+        var appDocument = fileService.getDocument(hashId);
         if(appDocument == null){
             return ResponseEntity.badRequest().build();
         }
@@ -33,8 +34,8 @@ public class FileController {
     }
 
     @GetMapping("/get-photo")
-    public ResponseEntity<?> getPhoto(@RequestParam ("id") String id){
-        var appPhoto = fileService.getPhoto(id);
+    public ResponseEntity<?> getPhoto(@RequestParam ("id") String hashId){
+        var appPhoto = fileService.getPhoto(hashId);
         if(appPhoto == null){
             return ResponseEntity.badRequest().build();
         }
