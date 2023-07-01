@@ -1,4 +1,4 @@
-package com.lukushin.service.controller;
+package com.lukushin.controller;
 
 import com.lukushin.service.FileService;
 import com.lukushin.utils.CryptoTool;

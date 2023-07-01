@@ -1,4 +1,4 @@
-package com.lukushin.service.configuration;
+package com.lukushin.configuration;
 
 import com.lukushin.utils.CryptoTool;
 import org.springframework.beans.factory.annotation.Value;
