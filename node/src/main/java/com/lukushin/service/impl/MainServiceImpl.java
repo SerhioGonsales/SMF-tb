@@ -9,6 +9,7 @@ import com.lukushin.dao.AppUserDAO;
 import com.lukushin.enums.LinkType;
 import com.lukushin.enums.ServiceCommands;
 import com.lukushin.exceptions.UploadFileException;
+import com.lukushin.service.AppUserService;
 import com.lukushin.service.FileService;
 import com.lukushin.service.MainService;
 import com.lukushin.service.ProducerService;
@@ -27,32 +28,35 @@ public class MainServiceImpl implements MainService {
     private final ProducerService producerService;
     private final AppUserDAO appUserDAO;
     private final FileService fileService;
+    private final AppUserService appUserService;
 
     public MainServiceImpl(RawDataDAO rawDataDAO,
                            ProducerService producerService,
                            AppUserDAO appUserDAO,
-                           FileService fileService) {
+                           FileService fileService,
+                           AppUserService appUserService) {
         this.rawDataDAO = rawDataDAO;
         this.producerService = producerService;
         this.appUserDAO = appUserDAO;
         this.fileService = fileService;
+        this.appUserService = appUserService;
     }
 
     @Override
     public void processTextMessage(Update update) {
         saveRawData(update);
         var appUser = findOrSaveAppUser(update);
-        var cmd = update.getMessage().getText();
+        var text = update.getMessage().getText();
         var userState = appUser.getState();
         var out ="";
 
-        var serviceCommand = ServiceCommands.fromValue(cmd);
+        var serviceCommand = ServiceCommands.fromValue(text);
         if(CANCEL.equals(serviceCommand)) {
             out = processCancelCmd(appUser);
         } else if(BASIC_STATE.equals(userState)){
-            out = processServiceCommand(appUser, cmd);
+            out = processServiceCommand(appUser, text);
         } else if(WAIT_FOR_EMAIL_STATE.equals(userState)){
-            // TODO добавить обработку email
+            out = appUserService.setEmail(appUser, text);
         } else {
             log.error("Неизвестный статус пользователя: " + userState);
             out = "Неизвестная ошибка. Отмените действие командой /cancel.";
@@ -106,10 +110,7 @@ public class MainServiceImpl implements MainService {
     private String processServiceCommand(AppUser appUser, String cmd) {
         var serviceCommand = ServiceCommands.fromValue(cmd);
         if(REGISTRATION.equals(serviceCommand)){
-            // TODO добавит генерацию письма
-            return "Функция временно недоступна.";
-//            return "На вашу почту было выслано письмо для регистрации.\n" +
-//                    "Пройдите по ссылке в этом письме.";
+            return appUserService.registerUser(appUser);
         } else if(HELP.equals(serviceCommand)){
             return help();
         } else if(START.equals(serviceCommand)){
@@ -143,20 +144,19 @@ public class MainServiceImpl implements MainService {
     private AppUser findOrSaveAppUser(Update update) {
         var telegramUser = update.getMessage().getFrom();
         var telegramUserId = telegramUser.getId();
-        var persistenceAppUser = appUserDAO.findAppUserByTelegramUserId(telegramUserId);
-        if(persistenceAppUser == null){
+        var optional = appUserDAO.findByTelegramUserId(telegramUserId);
+        if(optional.isEmpty()){
             var transientAppUser = AppUser.builder()
                     .telegramUserId(telegramUserId)
                     .firstName(telegramUser.getFirstName())
                     .lastName(telegramUser.getLastName())
                     .userName(telegramUser.getUserName())
-                    // TODO изменить на false когда будет регистрация и активация по email
-                    .isActive(true)
+                    .isActive(false)
                     .state(BASIC_STATE)
                     .build();
             return appUserDAO.save(transientAppUser);
         }
-        return persistenceAppUser;
+        return optional.get();
     }
 
     private boolean isNotAllowToSendContent(AppUser appUser, Long chatId) {
