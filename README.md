@@ -15,7 +15,7 @@
 - Spring Boot
 - Spring WEB
 - JPA
-- PostgreSQL (JSONB)
+- PostgreSQL
 - RabbitMQ
 - Java Mail API
 
